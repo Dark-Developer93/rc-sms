@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, FormEvent } from "react";
+
 import Nav from "@/components/nav/Nav";
 import {
   Card,
@@ -50,6 +51,10 @@ import {
   Workshop,
   NewUserFormData,
   NewWorkshopFormData,
+  StudentUser,
+  MentorUser,
+  AdminUser,
+  CompanyUser,
 } from "@/types/dashboard";
 import {
   mockUsers,
@@ -63,23 +68,134 @@ import {
 export default function AdminDashboard() {
   const [users, setUsers] = useState<User[]>(mockUsers);
   const [workshops, setWorkshops] = useState<Workshop[]>(mockWorkshops);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+
+  const createUserByRole = (
+    baseData: {
+      id: number;
+      name: string;
+      email: string;
+      role: User["role"];
+    },
+    cohortData?: { cohort: number }
+  ): User => {
+    switch (baseData.role) {
+      case "student":
+        if (!cohortData?.cohort)
+          throw new Error("Cohort is required for students");
+        return {
+          ...baseData,
+          role: "student",
+          cohort: cohortData.cohort,
+        } as StudentUser;
+
+      case "mentor":
+        if (!cohortData?.cohort)
+          throw new Error("Cohort is required for mentors");
+        return {
+          ...baseData,
+          role: "mentor",
+          cohort: cohortData.cohort,
+        } as MentorUser;
+
+      case "admin":
+        return {
+          ...baseData,
+          role: "admin",
+        } as AdminUser;
+
+      case "company":
+        return {
+          ...baseData,
+          role: "company",
+        } as CompanyUser;
+
+      default:
+        throw new Error("Invalid user role");
+    }
+  };
+
+  const handleUserUpsert = (
+    userData: NewUserFormData,
+    userId?: number
+  ): void => {
+    const isEdit = userId !== undefined;
+
+    setUsers((currentUsers) => {
+      if (isEdit) {
+        return currentUsers.map((user) => {
+          if (user.id !== userId) return user;
+
+          const newRole = userData.role || user.role;
+          let cohortData: { cohort: number } | undefined;
+
+          if (newRole === "student" || newRole === "mentor") {
+            cohortData = {
+              cohort:
+                userData.cohort || (user as StudentUser | MentorUser).cohort,
+            };
+          }
+
+          return createUserByRole(
+            {
+              id: user.id,
+              name: userData.name || user.name,
+              email: userData.email || user.email,
+              role: newRole,
+            },
+            cohortData
+          );
+        });
+      } else {
+        const newUser = createUserByRole(
+          {
+            id: currentUsers.length + 1,
+            name: userData.name,
+            email: userData.email,
+            role: userData.role,
+          },
+          userData.cohort ? { cohort: userData.cohort } : undefined
+        );
+        return [...currentUsers, newUser];
+      }
+    });
+  };
+
+  const handleUserFormSubmit = (
+    e: FormEvent<HTMLFormElement>,
+    formType: "add" | "edit",
+    userId?: number
+  ): void => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const role = formData.get("role") as User["role"];
+
+    const userData: NewUserFormData = {
+      name: formData.get("name") as string,
+      email: formData.get("email") as string,
+      role: role,
+    };
+
+    if (role === "student" || role === "mentor") {
+      const cohortValue = formData.get("cohort");
+      if (cohortValue) {
+        userData.cohort = parseInt(cohortValue as string);
+      }
+    }
+
+    handleUserUpsert(userData, formType === "edit" ? userId : undefined);
+
+    if (formType === "add") {
+      setIsAddModalOpen(false);
+    } else {
+      setIsEditModalOpen(false);
+    }
+  };
 
   const handleDeleteUser = (id: number): void => {
     setUsers(users.filter((user) => user.id !== id));
-  };
-
-  const handleAddUser = (userData: NewUserFormData): void => {
-    const newUser: User = {
-      id: users.length + 1,
-      ...userData,
-    };
-    setUsers([...users, newUser]);
-  };
-
-  const handleEditUser = (id: number, updatedUser: Partial<User>): void => {
-    setUsers(
-      users.map((user) => (user.id === id ? { ...user, ...updatedUser } : user))
-    );
   };
 
   const handleAddWorkshop = (workshopData: NewWorkshopFormData): void => {
@@ -106,26 +222,6 @@ export default function AdminDashboard() {
     setWorkshops(workshops.filter((workshop) => workshop.id !== id));
   };
 
-  const handleUserFormSubmit = (
-    e: FormEvent<HTMLFormElement>,
-    formType: "add" | "edit",
-    userId?: number
-  ): void => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const userData: NewUserFormData = {
-      name: formData.get("name") as string,
-      email: formData.get("email") as string,
-      role: formData.get("role") as User["role"],
-    };
-
-    if (formType === "add") {
-      handleAddUser(userData);
-    } else if (formType === "edit" && userId) {
-      handleEditUser(userId, userData);
-    }
-  };
-
   const handleWorkshopFormSubmit = (
     e: FormEvent<HTMLFormElement>,
     formType: "add" | "edit",
@@ -146,6 +242,11 @@ export default function AdminDashboard() {
     } else if (formType === "edit" && workshopId) {
       handleEditWorkshop(workshopId, workshopData);
     }
+  };
+
+  const handleEditClick = (user: User) => {
+    setEditingUser(user);
+    setIsEditModalOpen(true);
   };
 
   return (
@@ -220,9 +321,11 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="mb-4">
-              <Dialog>
+              <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
                 <DialogTrigger asChild>
-                  <Button>Add New User</Button>
+                  <Button onClick={() => setIsAddModalOpen(true)}>
+                    Add New User
+                  </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
@@ -237,19 +340,38 @@ export default function AdminDashboard() {
                   >
                     <div>
                       <Label htmlFor="name">Name</Label>
-                      <Input id="name" placeholder="Enter name" />
+                      <Input
+                        id="name"
+                        name="name"
+                        placeholder="Enter name"
+                        required
+                      />
                     </div>
                     <div>
                       <Label htmlFor="email">Email</Label>
                       <Input
                         id="email"
+                        name="email"
                         type="email"
                         placeholder="Enter email"
+                        required
                       />
                     </div>
                     <div>
                       <Label htmlFor="role">Role</Label>
-                      <Select>
+                      <Select
+                        name="role"
+                        onValueChange={(value) => {
+                          const cohortField =
+                            document.getElementById("cohort-field");
+                          if (cohortField) {
+                            cohortField.style.display =
+                              value === "student" || value === "mentor"
+                                ? "block"
+                                : "none";
+                          }
+                        }}
+                      >
                         <SelectTrigger id="role">
                           <SelectValue placeholder="Select role" />
                         </SelectTrigger>
@@ -258,6 +380,20 @@ export default function AdminDashboard() {
                           <SelectItem value="mentor">Mentor</SelectItem>
                           <SelectItem value="admin">Admin</SelectItem>
                           <SelectItem value="company">Company</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div id="cohort-field" style={{ display: "none" }}>
+                      <Label htmlFor="cohort">Cohort</Label>
+                      <Select name="cohort">
+                        <SelectTrigger id="cohort">
+                          <SelectValue placeholder="Select cohort" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">Cohort 1</SelectItem>
+                          <SelectItem value="2">Cohort 2</SelectItem>
+                          <SelectItem value="3">Cohort 3</SelectItem>
+                          <SelectItem value="4">Cohort 4</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -272,6 +408,7 @@ export default function AdminDashboard() {
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
+                  <TableHead>Cohort</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -282,59 +419,19 @@ export default function AdminDashboard() {
                     <TableCell>{user.email}</TableCell>
                     <TableCell>{user.role}</TableCell>
                     <TableCell>
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button variant="outline" size="sm" className="mr-2">
-                            Edit
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Edit User</DialogTitle>
-                            <DialogDescription>
-                              Update the user&apos;s information.
-                            </DialogDescription>
-                          </DialogHeader>
-                          <form
-                            className="space-y-4"
-                            onSubmit={(e) =>
-                              handleUserFormSubmit(e, "edit", user.id)
-                            }
-                          >
-                            <div>
-                              <Label htmlFor="edit-name">Name</Label>
-                              <Input id="edit-name" defaultValue={user.name} />
-                            </div>
-                            <div>
-                              <Label htmlFor="edit-email">Email</Label>
-                              <Input
-                                id="edit-email"
-                                type="email"
-                                defaultValue={user.email}
-                              />
-                            </div>
-                            <div>
-                              <Label htmlFor="edit-role">Role</Label>
-                              <Select defaultValue={user.role.toLowerCase()}>
-                                <SelectTrigger id="edit-role">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="student">
-                                    Student
-                                  </SelectItem>
-                                  <SelectItem value="mentor">Mentor</SelectItem>
-                                  <SelectItem value="admin">Admin</SelectItem>
-                                  <SelectItem value="company">
-                                    Company
-                                  </SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <Button type="submit">Update User</Button>
-                          </form>
-                        </DialogContent>
-                      </Dialog>
+                      {user.role === "student" || user.role === "mentor"
+                        ? user.cohort
+                        : "-"}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mr-2"
+                        onClick={() => handleEditClick(user)}
+                      >
+                        Edit
+                      </Button>
                       <Button
                         variant="destructive"
                         size="sm"
@@ -347,6 +444,101 @@ export default function AdminDashboard() {
                 ))}
               </TableBody>
             </Table>
+
+            <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Edit User</DialogTitle>
+                  <DialogDescription>
+                    Update the user&apos;s details.
+                  </DialogDescription>
+                </DialogHeader>
+                <form
+                  className="space-y-4"
+                  onSubmit={(e) =>
+                    handleUserFormSubmit(e, "edit", editingUser?.id)
+                  }
+                >
+                  <div>
+                    <Label htmlFor="edit-name">Name</Label>
+                    <Input
+                      id="edit-name"
+                      name="name"
+                      placeholder="Enter name"
+                      defaultValue={editingUser?.name}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-email">Email</Label>
+                    <Input
+                      id="edit-email"
+                      name="email"
+                      type="email"
+                      placeholder="Enter email"
+                      defaultValue={editingUser?.email}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-role">Role</Label>
+                    <Select
+                      name="role"
+                      defaultValue={editingUser?.role}
+                      onValueChange={(value) => {
+                        const cohortField =
+                          document.getElementById("edit-cohort-field");
+                        if (cohortField) {
+                          cohortField.style.display =
+                            value === "student" || value === "mentor"
+                              ? "block"
+                              : "none";
+                        }
+                      }}
+                    >
+                      <SelectTrigger id="edit-role">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="student">Student</SelectItem>
+                        <SelectItem value="mentor">Mentor</SelectItem>
+                        <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="company">Company</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div
+                    id="edit-cohort-field"
+                    style={{
+                      display:
+                        editingUser?.role === "student" ||
+                        editingUser?.role === "mentor"
+                          ? "block"
+                          : "none",
+                    }}
+                  >
+                    <Label htmlFor="edit-cohort">Cohort</Label>
+                    <Select
+                      name="cohort"
+                      defaultValue={(
+                        editingUser as StudentUser | MentorUser
+                      )?.cohort?.toString()}
+                    >
+                      <SelectTrigger id="edit-cohort">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">Cohort 1</SelectItem>
+                        <SelectItem value="2">Cohort 2</SelectItem>
+                        <SelectItem value="3">Cohort 3</SelectItem>
+                        <SelectItem value="4">Cohort 4</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button type="submit">Update User</Button>
+                </form>
+              </DialogContent>
+            </Dialog>
           </CardContent>
         </Card>
 
