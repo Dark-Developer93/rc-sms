@@ -24,12 +24,31 @@ export interface InternshipPosition {
   applicants: number;
 }
 
-export interface User {
+export interface BaseUser {
   id: number;
   name: string;
   email: string;
-  role: "Student" | "Mentor" | "Admin" | "Company";
 }
+
+export interface StudentUser extends BaseUser {
+  role: "student";
+  cohort: number;
+}
+
+export interface MentorUser extends BaseUser {
+  role: "mentor";
+  cohort: number;
+}
+
+export interface AdminUser extends BaseUser {
+  role: "admin";
+}
+
+export interface CompanyUser extends BaseUser {
+  role: "company";
+}
+
+export type User = StudentUser | MentorUser | AdminUser | CompanyUser;
 
 export interface ProgramData {
   month: string;
@@ -94,7 +113,8 @@ export interface CompanyMatch {
 export interface NewUserFormData {
   name: string;
   email: string;
-  role: User["role"];
+  role: User["role"]; // "student" | "mentor" | "admin" | "company"
+  cohort?: number; // Optional, only for student/mentor
 }
 
 export interface NewWorkshopFormData {
@@ -122,4 +142,16 @@ export interface WeeklyEvaluation {
   weeklyProgress: number;
   notes?: string;
   lastUpdated?: Date;
+}
+
+export interface Cohort {
+  id: number;
+  title: string;
+  startDate: string;
+  endDate: string;
+  status: "upcoming" | "active" | "completed";
+  capacity: number;
+  currentStudents: number;
+  location: string;
+  mentors?: Array<User & { role: "mentor" }>;
 }

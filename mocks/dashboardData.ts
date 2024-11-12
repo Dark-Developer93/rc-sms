@@ -11,14 +11,55 @@ import {
   ProgramData,
   EvaluationData,
   StudentMetric,
+  Cohort,
 } from "@/types/dashboard";
 
 // User Data
 export const mockUsers: User[] = [
-  { id: 1, name: "John Doe", email: "john@example.com", role: "Student" },
-  { id: 2, name: "Jane Smith", email: "jane@example.com", role: "Mentor" },
-  { id: 3, name: "Alice Johnson", email: "alice@example.com", role: "Admin" },
-  { id: 4, name: "Bob Brown", email: "bob@example.com", role: "Company" },
+  {
+    id: 1,
+    name: "John Doe",
+    email: "john@example.com",
+    role: "student",
+    cohort: 1,
+  },
+  {
+    id: 2,
+    name: "Sarah Chen",
+    email: "sarah@example.com",
+    role: "student",
+    cohort: 2,
+  },
+  {
+    id: 3,
+    name: "Michael Rodriguez",
+    email: "michael@example.com",
+    role: "mentor",
+    cohort: 1,
+  },
+  {
+    id: 4,
+    name: "Emma Thompson",
+    email: "emma@example.com",
+    role: "mentor",
+    cohort: 2,
+  },
+  {
+    id: 5,
+    name: "David Kim",
+    email: "david@example.com",
+    role: "mentor",
+    cohort: 1,
+  },
+  {
+    id: 6,
+    name: "Sophie Martin",
+    email: "sophie@example.com",
+    role: "mentor",
+    cohort: 2,
+  },
+  { id: 7, name: "Alice Johnson", email: "alice@example.com", role: "admin" },
+  { id: 8, name: "Bob Brown", email: "bob@example.com", role: "company" },
 ];
 
 // Workshop Data
@@ -72,7 +113,7 @@ export const mockCalendarEvents: CalendarDay[] = [
     ],
   },
   {
-    date: new Date(new Date().setDate(new Date().getDate() + 1)),
+    date: new Date(new Date().setDate(new Date().getDate() + 4)),
     events: [
       {
         title: "English Practice",
@@ -89,7 +130,7 @@ export const mockCalendarEvents: CalendarDay[] = [
     ],
   },
   {
-    date: new Date(new Date().setDate(new Date().getDate() + 2)),
+    date: new Date(new Date().setDate(new Date().getDate() + 8)),
     events: [
       {
         title: "Mock Interview",
@@ -296,5 +337,53 @@ export const mockStudentProgress: StudentProgress[] = [
     lastUpdated: "2024-03-14",
     currentModule: "API Development",
     status: "on_track",
+  },
+];
+
+export const mockCohorts: Cohort[] = [
+  {
+    id: 1,
+    title: "Cohort 2024 Spring",
+    startDate: "2024-01-15",
+    endDate: "2024-06-15",
+    status: "active",
+    capacity: 30,
+    currentStudents: 25,
+    location: "Lausanne",
+    mentors: mockUsers
+      .filter(
+        (user): user is User & { role: "mentor" } => user.role === "mentor"
+      )
+      .slice(0, 2),
+  },
+  {
+    id: 2,
+    title: "Cohort 2024 Fall",
+    startDate: "2024-08-15",
+    endDate: "2025-01-15",
+    status: "upcoming",
+    capacity: 30,
+    currentStudents: 0,
+    location: "Lausanne",
+    mentors: mockUsers
+      .filter(
+        (user): user is User & { role: "mentor" } => user.role === "mentor"
+      )
+      .slice(1, 3),
+  },
+  {
+    id: 3,
+    title: "Cohort 2023 Fall",
+    startDate: "2023-08-15",
+    endDate: "2024-01-15",
+    status: "completed",
+    capacity: 25,
+    currentStudents: 22,
+    location: "Lausanne",
+    mentors: mockUsers
+      .filter(
+        (user): user is User & { role: "mentor" } => user.role === "mentor"
+      )
+      .slice(2, 4),
   },
 ];
