@@ -9,6 +9,9 @@ export interface ScheduledInterview {
   date: string;
   time: string;
   notes: string;
+  interviewDate: string;
+  status?: "accepted" | "rejected" | "pending";
+  decisionNotes?: string;
 }
 
 export interface ScheduledInterviews {
@@ -67,6 +70,7 @@ export interface StudentMetric {
   overallScore: number;
   technicalSkills: number;
   softSkills: number;
+  feedback?: string;
 }
 
 export interface Workshop {
@@ -126,13 +130,16 @@ export interface NewWorkshopFormData {
   attendees?: number;
 }
 
+export type EvaluationStatus = "passed" | "failed" | "pending";
+
 export interface ProjectEvaluation {
   id: number;
   studentName: string;
   projectName: string;
   dueDate: string;
-  status: "Pending" | "In Progress" | "Completed";
-  evaluationStatus: "passed" | "failed" | "";
+  evaluationStatus?: EvaluationStatus;
+  technicalSkills: number;
+  feedback: string;
 }
 
 export interface WeeklyEvaluation {
@@ -140,7 +147,7 @@ export interface WeeklyEvaluation {
   studentName: string;
   technicalSkills: number;
   weeklyProgress: number;
-  notes?: string;
+  notes: string;
   lastUpdated?: Date;
 }
 

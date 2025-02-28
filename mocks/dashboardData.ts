@@ -223,15 +223,16 @@ export const mockEvaluations: ProjectEvaluation[] = [
     studentName: "Alice Johnson",
     projectName: "Web Scraper",
     dueDate: "2024-03-15",
-    status: "Pending",
-    evaluationStatus: "",
+    technicalSkills: 2,
+    feedback: "Needs improvement",
   },
   {
     id: 2,
     studentName: "Bob Smith",
     projectName: "Chat Application",
     dueDate: "2024-03-18",
-    status: "Completed",
+    technicalSkills: 4,
+    feedback: "Great job on the project!",
     evaluationStatus: "passed",
   },
 ];
@@ -287,6 +288,7 @@ export const mockStudentMetrics: StudentMetric[] = [
     overallScore: 4.5,
     technicalSkills: 4.7,
     softSkills: 4.3,
+    feedback: "Great job on the project!",
   },
   {
     id: 2,
@@ -294,6 +296,7 @@ export const mockStudentMetrics: StudentMetric[] = [
     overallScore: 4.2,
     technicalSkills: 4.5,
     softSkills: 3.9,
+    feedback: "Good progress, need to improve communication skills.",
   },
 ];
 
@@ -385,5 +388,70 @@ export const mockCohorts: Cohort[] = [
         (user): user is User & { role: "mentor" } => user.role === "mentor"
       )
       .slice(2, 4),
+  },
+];
+
+// Mock data for companies and students
+
+export const mockCompanies = [
+  {
+    id: "1",
+    name: "TechCorp",
+    positions: ["Frontend Developer", "Backend Developer"],
+  },
+  {
+    id: "2",
+    name: "DataSoft",
+    positions: ["Data Analyst", "Data Engineer"],
+  },
+  {
+    id: "3",
+    name: "CloudSys",
+    positions: ["Cloud Engineer", "DevOps Engineer"],
+  },
+];
+
+export const mockStudents = [
+  {
+    id: "1",
+    name: "Alice Johnson",
+    skills: ["React", "TypeScript"],
+  },
+  {
+    id: "2",
+    name: "Bob Williams",
+    skills: ["Python", "Data Analysis"],
+  },
+  {
+    id: "3",
+    name: "Charlie Brown",
+    skills: ["AWS", "Docker"],
+  },
+];
+
+export const mockMatches = [
+  {
+    id: 1,
+    studentName: "Alice Johnson",
+    companyName: "TechCorp",
+    position: "Frontend Developer",
+    matchDate: "2024-03-20",
+    status: "matched",
+  },
+  {
+    id: 2,
+    studentName: "Bob Williams",
+    companyName: "DataSoft",
+    position: "Data Analyst",
+    matchDate: "2024-03-19",
+    status: "pending",
+  },
+  {
+    id: 3,
+    studentName: "Charlie Brown",
+    companyName: "CloudSys",
+    position: "Cloud Engineer",
+    matchDate: "2024-03-18",
+    status: "matched",
   },
 ];
