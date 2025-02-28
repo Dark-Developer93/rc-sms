@@ -14,11 +14,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  Candidate,
-  InternshipPosition,
-  ScheduledInterviews,
-} from "@/types/dashboard";
+import { Candidate, InternshipPosition } from "@/types/dashboard";
 import { mockCandidates, mockPositions } from "@/mocks/dashboardData";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
