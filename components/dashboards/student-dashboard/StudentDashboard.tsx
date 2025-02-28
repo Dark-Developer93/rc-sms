@@ -1,38 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import Nav from "@/components/nav/Nav";
+import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { DashboardCard } from "@/components/dashboard/DashboardCard";
+import { DataTable } from "@/components/dashboard/DataTable";
+import { Progress } from "@/components/ui/progress";
+import { Calendar } from "@/components/ui/calendar";
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { CalendarEvent } from "@/types/dashboard";
+import { CalendarEvent, CompanyMatch } from "@/types/dashboard";
 import { mockCalendarEvents, mockCompanyMatches } from "@/mocks/dashboardData";
 
 const StudentDashboard = () => {
@@ -45,10 +28,6 @@ const StudentDashboard = () => {
   const handleUpdateProgress = (): void => {
     const newProgress = Math.min(overallProgress + 1, 100);
     setOverallProgress(newProgress);
-  };
-
-  const handleSubmitProject = (): void => {
-    console.log("Project submitted");
   };
 
   const handleDateSelect = (date: Date | undefined): void => {
@@ -65,206 +44,175 @@ const StudentDashboard = () => {
   };
 
   return (
-    <div>
-      <Nav role="student" />
-      <main className="p-8">
-        <h1 className="text-3xl font-bold mb-6">Student Dashboard</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>EPFL Course Tracking</CardTitle>
-              <CardDescription>
-                View your progress and evaluations
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button asChild>
-                <a href="#course-progress">View Progress</a>
-              </Button>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Project Submissions</CardTitle>
-              <CardDescription>
-                {overallProgress < 100
-                  ? "Complete all coursework to unlock project submission"
-                  : "Submit EPFL projects"}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button disabled={overallProgress < 100}>
-                    Submit Project
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Submit EPFL Project</DialogTitle>
-                    <DialogDescription>
-                      Provide details about your project submission.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <form className="space-y-4">
-                    <div>
-                      <Label htmlFor="project-name">Project Name</Label>
-                      <Input
-                        id="project-name"
-                        placeholder="Enter project name"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="project-description">
-                        Project Description
-                      </Label>
-                      <Textarea
-                        id="project-description"
-                        placeholder="Describe your project..."
-                        rows={3}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="github-link">GitHub Link</Label>
-                      <Input
-                        id="github-link"
-                        placeholder="https://github.com/yourusername/project"
-                      />
-                    </div>
-                    <Button type="button" onClick={handleSubmitProject}>
-                      Submit Project
-                    </Button>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            </CardContent>
-          </Card>
-        </div>
+    <DashboardLayout role="student" title="Student Dashboard">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <DashboardCard
+          title="EPFL Course Tracking"
+          description="View your progress and evaluations"
+          action={{
+            type: "link",
+            href: "#course-progress",
+            text: "View Progress",
+          }}
+        />
+        <DashboardCard
+          title="Project Submissions"
+          description={
+            overallProgress < 100
+              ? "Complete all coursework to unlock project submission"
+              : "Submit EPFL projects"
+          }
+          action={{
+            type: "form",
+            text: "Submit Project",
+            disabled: overallProgress < 100,
+            form: {
+              title: "Submit EPFL Project",
+              description: "Provide details about your project submission.",
+              fields: [
+                {
+                  id: "project-name",
+                  label: "Project Name",
+                  type: "text",
+                  placeholder: "Enter project name",
+                  required: true,
+                },
+                {
+                  id: "project-description",
+                  label: "Project Description",
+                  type: "textarea",
+                  placeholder: "Describe your project...",
+                  required: true,
+                },
+                {
+                  id: "github-link",
+                  label: "GitHub Link",
+                  type: "text",
+                  placeholder: "https://github.com/yourusername/project",
+                  required: true,
+                },
+              ],
+              onSubmit: (formData) => {
+                console.log("Project submitted:", formData);
+              },
+            },
+          }}
+        />
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Calendar</CardTitle>
-              <CardDescription>
-                Upcoming workshops, events, and practice sessions
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
-                <div className="flex-1">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={handleDateSelect}
-                    className="rounded-md border"
-                    modifiers={{
-                      event: (date) =>
-                        mockCalendarEvents.some(
-                          (event) =>
-                            event.date.toDateString() === date.toDateString()
-                        ),
-                      selected: (date) =>
-                        selectedDate?.toDateString() === date.toDateString(),
-                    }}
-                    modifiersStyles={{
-                      event: {
-                        backgroundColor: "gray",
-                        fontWeight: "bold",
-                      },
-                      selected: {
-                        backgroundColor: "black",
-                        color: "white",
-                        fontWeight: "bold",
-                      },
-                    }}
-                  />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold mb-2">
-                    Events for {selectedDate?.toDateString()}
-                  </h3>
-                  {selectedEvents.length > 0 ? (
-                    <ul className="space-y-2">
-                      {selectedEvents.map((event, index) => (
-                        <li key={index} className="border p-2 rounded">
-                          <p className="font-medium">{event.title}</p>
-                          <p className="text-sm text-gray-600">{event.time}</p>
-                          <p className="text-sm text-gray-600">
-                            {event.location}
-                          </p>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p>No events scheduled for this day.</p>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Company Matching</CardTitle>
-              <CardDescription>
-                Matched companies and interview schedules
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Company</TableHead>
-                    <TableHead>Match</TableHead>
-                    <TableHead>Interview Date</TableHead>
-                    <TableHead>Interview Time</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {mockCompanyMatches.map((match) => (
-                    <TableRow key={match.id}>
-                      <TableCell>{match.companyName}</TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">
-                          {match.matchPercentage}%
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{match.interviewDate}</TableCell>
-                      <TableCell>{match.interviewTime}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Card id="course-progress">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <Card>
           <CardHeader>
-            <CardTitle>EPFL Course Progress</CardTitle>
+            <CardTitle>Calendar</CardTitle>
             <CardDescription>
-              Overview of your current course progress
+              Upcoming workshops, events, and practice sessions
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="font-medium">Overall Progress</span>
-                  <span className="text-sm text-muted-foreground">
-                    {overallProgress}%
-                  </span>
-                </div>
-                <Progress value={overallProgress} className="h-2" />
-                <Button onClick={handleUpdateProgress} className="w-full mt-2">
-                  Update Daily Progress
-                </Button>
+            <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
+              <div className="flex-1">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={handleDateSelect}
+                  className="rounded-md border"
+                  modifiers={{
+                    event: (date) =>
+                      mockCalendarEvents.some(
+                        (event) =>
+                          event.date.toDateString() === date.toDateString()
+                      ),
+                    selected: (date) =>
+                      selectedDate?.toDateString() === date.toDateString(),
+                  }}
+                  modifiersStyles={{
+                    event: { backgroundColor: "gray", fontWeight: "bold" },
+                    selected: {
+                      backgroundColor: "black",
+                      color: "white",
+                      fontWeight: "bold",
+                    },
+                  }}
+                />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold mb-2">
+                  Events for {selectedDate?.toDateString()}
+                </h3>
+                {selectedEvents.length > 0 ? (
+                  <ul className="space-y-2">
+                    {selectedEvents.map((event, index) => (
+                      <li key={index} className="border p-2 rounded">
+                        <p className="font-medium">{event.title}</p>
+                        <p className="text-sm text-gray-600">{event.time}</p>
+                        <p className="text-sm text-gray-600">
+                          {event.location}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>No events scheduled for this day.</p>
+                )}
               </div>
             </div>
           </CardContent>
         </Card>
-      </main>
-    </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Company Matching</CardTitle>
+            <CardDescription>
+              Matched companies and interview schedules
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <DataTable<Record<string, React.ReactNode> & CompanyMatch>
+              columns={[
+                { header: "Company", accessor: "companyName" },
+                {
+                  header: "Match",
+                  accessor: (match) => (
+                    <Badge variant="secondary">{match.matchPercentage}%</Badge>
+                  ),
+                },
+                { header: "Interview Date", accessor: "interviewDate" },
+                { header: "Interview Time", accessor: "interviewTime" },
+              ]}
+              data={
+                mockCompanyMatches as (Record<string, React.ReactNode> &
+                  CompanyMatch)[]
+              }
+            />
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card id="course-progress">
+        <CardHeader>
+          <CardTitle>EPFL Course Progress</CardTitle>
+          <CardDescription>
+            Overview of your current course progress
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="font-medium">Overall Progress</span>
+                <span className="text-sm text-muted-foreground">
+                  {overallProgress}%
+                </span>
+              </div>
+              <Progress value={overallProgress} className="h-2" />
+              <Button onClick={handleUpdateProgress} className="w-full mt-2">
+                Update Daily Progress
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </DashboardLayout>
   );
 };
 
