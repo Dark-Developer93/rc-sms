@@ -195,7 +195,7 @@ export default function MentorDashboard() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <DataTable
+          <DataTable<Record<string, React.ReactNode> & ProjectEvaluation>
             columns={[
               { header: "Student Name", accessor: "studentName" },
               { header: "Project Name", accessor: "projectName" },
@@ -223,7 +223,10 @@ export default function MentorDashboard() {
               },
               { header: "Feedback", accessor: "feedback" },
             ]}
-            data={evaluations}
+            data={
+              evaluations as (Record<string, React.ReactNode> &
+                ProjectEvaluation)[]
+            }
             actions={(evaluation) => (
               <EvaluationDialog
                 studentName={evaluation.studentName}
@@ -288,7 +291,7 @@ export default function MentorDashboard() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <DataTable
+          <DataTable<Record<string, React.ReactNode> & WeeklyEvaluation>
             columns={[
               { header: "Student Name", accessor: "studentName" },
               {
@@ -305,7 +308,10 @@ export default function MentorDashboard() {
                 accessor: (row) => row.lastUpdated?.toLocaleString(),
               },
             ]}
-            data={weeklyEvaluations}
+            data={
+              weeklyEvaluations as (Record<string, React.ReactNode> &
+                WeeklyEvaluation)[]
+            }
             actions={(evaluation) => (
               <EvaluationDialog
                 studentName={evaluation.studentName}
